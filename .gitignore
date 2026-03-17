@@ -27,6 +27,7 @@ keeper-state.json
 /artifacts/*
 !/artifacts/.gitkeep
 *.tar
+!/artifacts/ecnu-network-keeper.tar
 
 # Test scratch files
 tests/_tmp_*
