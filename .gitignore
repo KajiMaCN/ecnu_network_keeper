@@ -1,0 +1,38 @@
+# Git
+.git/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# Local env files
+.env
+.env.systemd
+deploy/docker/.env
+deploy/systemd/.env
+
+# Runtime data
+/data/*
+!/data/.gitkeep
+/logs/*
+!/logs/.gitkeep
+keeper-events.log
+keeper-state.json
+
+# Build artifacts
+/artifacts/*
+!/artifacts/.gitkeep
+*.tar
+
+# Test scratch files
+tests/_tmp_*
+tests/_tmp*.ini
+tests/_tmp*.key
+
+# OS/editor
+.DS_Store
+Thumbs.db

@@ -1,0 +1,17 @@
+.git
+.gitignore
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+tests/
+tmp*/
+.env
+.env.systemd
+deploy/docker/.env
+deploy/systemd/.env
+data/
+logs/
+artifacts/
+*.tar

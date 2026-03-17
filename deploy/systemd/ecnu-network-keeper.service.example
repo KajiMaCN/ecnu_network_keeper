@@ -1,0 +1,20 @@
+[Unit]
+Description=ECNU Network Keeper
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_USER
+WorkingDirectory=/path/to/ecnu_network_keeper
+Environment=PYTHONUNBUFFERED=1
+Environment=HOME=/home/YOUR_USER
+Environment=ECNU_KEEPER_INTERVAL=120
+EnvironmentFile=-/path/to/ecnu_network_keeper/.env.systemd
+ExecStart=/usr/bin/python3 -m ecnu_network_keeper --login --daemon --verbose
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

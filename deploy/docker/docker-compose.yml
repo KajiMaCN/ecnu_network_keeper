@@ -1,0 +1,18 @@
+services:
+  ecnu-network-keeper:
+    image: ecnu-network-keeper:latest
+    container_name: ecnu-network-keeper
+    restart: unless-stopped
+    environment:
+      - ECNU_NET_CONFIG=/data/config.ini
+      - ECNU_NET_KEY_PATH=/data/config.key
+      - ECNU_KEEPER_EVENT_LOG=/logs/keeper-events.log
+      - ECNU_KEEPER_STATE_PATH=/data/keeper-state.json
+      - ECNU_KEEPER_INTERVAL=120
+      - ECNU_NET_USERNAME
+      - ECNU_NET_PASSWORD
+      - ECNU_NET_DOMAIN
+      - ECNU_NET_SECRET_KEY
+    volumes:
+      - ../../data:/data
+      - ../../logs:/logs
