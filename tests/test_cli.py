@@ -88,6 +88,17 @@ class CliCredentialSelectionTest(unittest.TestCase):
         self.assertEqual(selection.source, 'config')
         self.assertEqual(selection.credentials, Credentials(username='saved', password='', domain='@saved'))
 
+    def test_select_credentials_ignores_partial_env_when_prompt_is_allowed(self) -> None:
+        repository = FakeRepository(Credentials(username='saved', password='saved-pass', domain='@saved'))
+
+        with patch.dict(os.environ, {'ECNU_NET_USERNAME': 'env-user'}, clear=True):
+            with patch('sys.stdin.isatty', return_value=True):
+                selection = select_credentials(repository, allow_prompt=True)
+
+        self.assertEqual(selection.source, 'config')
+        self.assertEqual(selection.credentials, Credentials(username='saved', password='saved-pass', domain='@saved'))
+
+
 class CliDaemonTest(unittest.TestCase):
     def test_daemon_waits_when_credentials_are_missing(self) -> None:
         repository = FakeRepository()
@@ -164,4 +175,3 @@ class CliDaemonTest(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

@@ -115,7 +115,13 @@ def select_credentials(
             'args',
         )
 
-    env_credentials = load_credentials_from_env()
+    try:
+        env_credentials = load_credentials_from_env()
+    except ValueError:
+        if allow_prompt and sys.stdin.isatty():
+            env_credentials = None
+        else:
+            raise
     if env_credentials is not None:
         return CredentialSelection(_override_domain(env_credentials, domain), 'env')
 
@@ -285,5 +291,3 @@ def main() -> None:
         print(str(exc), file=sys.stderr)
         code = 2
     raise SystemExit(code)
-
-

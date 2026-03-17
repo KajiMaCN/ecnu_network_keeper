@@ -1,3 +1,4 @@
+import json
 import unittest
 
 from ecnu_network_keeper.config import Credentials
@@ -38,7 +39,18 @@ class NetworkAuthServiceTest(unittest.TestCase):
         self.assertEqual(portal.actions, [])
 
     def test_login_reports_success_after_connectivity_recovers(self) -> None:
-        portal = FakePortalClient('login-ok')
+        portal = FakePortalClient(
+            json.dumps(
+                {
+                    'error': 'ok',
+                    'res': 'ok',
+                    'ploy_msg': 'E0000: Login is successful.',
+                    'username': 'alice@stu.ecnu.edu.cn',
+                    'online_ip': '172.23.138.28',
+                },
+                ensure_ascii=False,
+            )
+        )
         service = NetworkAuthService(
             portal_client=portal,
             connectivity_checker=FakeConnectivityChecker([False, True]),
@@ -49,9 +61,22 @@ class NetworkAuthServiceTest(unittest.TestCase):
         self.assertEqual(result.status, AuthStatus.LOGIN_SUCCESS)
         self.assertEqual(len(portal.actions), 1)
         self.assertEqual(portal.actions[0][0], 'login')
+        self.assertIn('E0000: Login is successful.', result.message)
+        self.assertIn('user=alice@stu.ecnu.edu.cn', result.message)
+        self.assertIn('ip=172.23.138.28', result.message)
 
     def test_logout_reports_success_after_connectivity_drops(self) -> None:
-        portal = FakePortalClient('logout-ok')
+        portal = FakePortalClient(
+            json.dumps(
+                {
+                    'error': 'ok',
+                    'res': 'ok',
+                    'suc_msg': 'logout_ok',
+                    'username': 'alice@stu.ecnu.edu.cn',
+                },
+                ensure_ascii=False,
+            )
+        )
         service = NetworkAuthService(
             portal_client=portal,
             connectivity_checker=FakeConnectivityChecker([True, False]),
@@ -62,6 +87,7 @@ class NetworkAuthServiceTest(unittest.TestCase):
         self.assertEqual(result.status, AuthStatus.LOGOUT_SUCCESS)
         self.assertEqual(len(portal.actions), 1)
         self.assertEqual(portal.actions[0][0], 'logout')
+        self.assertIn('logout_ok', result.message)
 
     def test_logout_skips_when_already_offline(self) -> None:
         portal = FakePortalClient()
@@ -90,6 +116,32 @@ class NetworkAuthServiceTest(unittest.TestCase):
 
         self.assertEqual(result.status, AuthStatus.LOGIN_SUCCESS)
         self.assertEqual(sleep_calls, [0.5, 0.5])
+
+    def test_login_failure_mentions_portal_accepted_login(self) -> None:
+        portal = FakePortalClient(
+            json.dumps(
+                {
+                    'error': 'ok',
+                    'res': 'ok',
+                    'ploy_msg': 'E0000: Login is successful.',
+                    'username': 'alice@stu.ecnu.edu.cn',
+                    'online_ip': '172.23.138.28',
+                },
+                ensure_ascii=False,
+            )
+        )
+        service = NetworkAuthService(
+            portal_client=portal,
+            connectivity_checker=FakeConnectivityChecker([False, False, False, False]),
+            verify_attempts=3,
+            verify_delay=0.0,
+        )
+
+        result = service.login(Credentials(username='alice', password='secret'))
+
+        self.assertEqual(result.status, AuthStatus.LOGIN_FAILED)
+        self.assertIn('E0000: Login is successful.', result.message)
+        self.assertIn('Connectivity check still failed.', result.message)
 
 
 if __name__ == '__main__':
