@@ -327,6 +327,17 @@ ECNU_NET_SECRET_KEY=
 
 普通学生账号如果用默认后缀，`ECNU_NET_DOMAIN` 也可以不改。
 
+这一种方式里，`deploy/docker/.env` 中的账号和密码属于明文保存。
+
+也就是说：
+
+- `ECNU_NET_USERNAME=...`
+- `ECNU_NET_PASSWORD=...`
+
+会直接以普通文本形式出现在 `.env` 文件里。
+
+这种方式的优点是启动简单，但它不属于“加密存储凭据”。
+
 然后启动：
 
 ```bash
@@ -356,6 +367,14 @@ docker exec -it ecnu-network-keeper python -m ecnu_network_keeper --update --sto
 ```
 
 写入成功后，容器里的 keeper 下一轮检测就会自动尝试登录。
+
+这一种方式属于“交互输入后加密保存”：
+
+- 你在当前终端输入的密码不会回显
+- 凭据最终会加密写入 `/data/config.ini`
+- 不需要把密码明文写进 `deploy/docker/.env`
+
+如果你更在意密码落盘安全，推荐优先使用这一种方式。
 
 ### 4.4 启动 / 停止 / 重启 Docker keeper
 
@@ -480,6 +499,17 @@ docker load -i artifacts/ecnu-network-keeper.tar
 - 当前实现只依赖 Python 标准库，目标是“避免明文落盘 + 支持离线首装”
 - 如果你需要更强的密钥隔离，优先使用 `ECNU_NET_SECRET_KEY`
 - 如果密钥文件和配置文件放在同一目录，安全收益主要是“避免明文直接泄露”，不是强隔离
+
+可以把“明文使用”和“加密使用”简单理解成下面两类：
+
+- 明文账号密码：把 `ECNU_NET_USERNAME`、`ECNU_NET_PASSWORD` 直接写进 `deploy/docker/.env`，或者直接通过命令行参数传入。这种方式使用方便，但密码本身就是明文。
+- 加密存储账号密码：运行 `python3 -m ecnu_network_keeper --update --store-password`，或者在 Docker 容器里运行 `docker exec -it ecnu-network-keeper python -m ecnu_network_keeper --update --store-password --config /data/config.ini`。这种方式是交互输入，然后把凭据加密写入配置文件。
+
+需要特别注意：
+
+- `.env` 里的密码不会因为程序支持加密存储而自动变成加密内容
+- 只有 `--update --store-password` 这类“写入配置文件”的路径，才会真正把凭据按加密形式落盘
+- 如果你已经把密码写进 `.env`，那么加密存储只能保护后续写入的配置文件，不能消除 `.env` 这一份明文风险
 
 如果你需要生成新的主密钥，可以调用：
 
